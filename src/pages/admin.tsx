@@ -154,7 +154,7 @@ function InventoryTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 items-end gap-3 rounded-xl border border-border bg-card p-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]" role="search" aria-label="Inventory filters">
+      <div className="grid grid-cols-1 items-end gap-3 rounded-2xl border bg-card p-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]" role="search" aria-label="Inventory filters">
         <Field label="Search" htmlFor="inv-search">
           <div className="relative">
             <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -198,7 +198,7 @@ function InventoryTab() {
         <>
           <ul className="flex flex-col gap-3 sm:hidden">
             {q.data.rows.map((e) => (
-              <li key={e.id} className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4">
+              <li key={e.id} className="flex flex-col gap-2 rounded-2xl border bg-card p-4">
                 <div className="flex items-start justify-between gap-2">
                   <span className="font-mono font-semibold">{e.tag}</span>
                   <StatusBadge status={displayStatus(e)} />
@@ -212,7 +212,7 @@ function InventoryTab() {
               </li>
             ))}
           </ul>
-          <div className="hidden overflow-x-auto rounded-xl border border-border bg-card sm:block">
+          <div className="hidden overflow-x-auto rounded-2xl border bg-card surface-dense sm:block">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">All equipment</caption>
               <thead className="border-b border-border">
@@ -286,7 +286,7 @@ function CheckoutsTab() {
         <>
           <ul className="flex flex-col gap-3 sm:hidden">
             {q.data.rows.map((c) => (
-              <li key={c.id} className="flex flex-col gap-1.5 rounded-xl border border-border bg-card p-4 text-sm">
+              <li key={c.id} className="flex flex-col gap-1.5 rounded-2xl border bg-card p-4 text-sm">
                 <div className="flex items-start justify-between gap-2">
                   <span className="font-mono font-semibold">{c.equipment?.value || "Unknown item"}</span>
                   {badge(c)}
@@ -297,7 +297,7 @@ function CheckoutsTab() {
               </li>
             ))}
           </ul>
-          <div className="hidden overflow-x-auto rounded-xl border border-border bg-card sm:block">
+          <div className="hidden overflow-x-auto rounded-2xl border bg-card surface-dense sm:block">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">Checkouts</caption>
               <thead className="border-b border-border">
@@ -399,7 +399,7 @@ function LocationsTab() {
       ) : (
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {q.data.map((l) => (
-            <li key={l.id} className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4">
+            <li key={l.id} className="flex flex-col gap-2 rounded-2xl border bg-card p-4">
               <div className="flex items-start justify-between gap-2">
                 <Truncate text={l.name} className="font-medium" />
                 <span className="status-badge inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-2 text-xs">
@@ -437,7 +437,7 @@ function LocationsTab() {
             <TextInput id="loc-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={LIMITS.location} invalid={!!err} />
           </Field>
           <label className="flex min-h-11 items-center gap-3 text-sm font-medium">
-            <input type="checkbox" className="size-5 accent-[color:var(--link)]" checked={active} onChange={(e) => setActive(e.target.checked)} />
+            <input type="checkbox" className="size-5 accent-primary" checked={active} onChange={(e) => setActive(e.target.checked)} />
             Active (can be chosen for equipment)
           </label>
         </form>
@@ -528,7 +528,7 @@ function UsersTab() {
       ) : (
         <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {q.data.map((u) => (
-            <li key={u.id} className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4">
+            <li key={u.id} className="flex flex-col gap-2 rounded-2xl border bg-card p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <Truncate text={u.user?.name ?? u.name} className="font-medium" />
@@ -588,7 +588,7 @@ function UsersTab() {
             <TextInput id="user-dept" value={dept} onChange={(e) => setDept(e.target.value)} maxLength={LIMITS.department} />
           </Field>
           <label className="flex min-h-11 items-center gap-3 self-end text-sm font-medium">
-            <input type="checkbox" className="size-5 accent-[color:var(--link)]" checked={active} onChange={(e) => setActive(e.target.checked)} disabled={isLastAdmin(edit.u)} />
+            <input type="checkbox" className="size-5 accent-primary" checked={active} onChange={(e) => setActive(e.target.checked)} disabled={isLastAdmin(edit.u)} />
             Active
           </label>
         </form>
@@ -695,7 +695,7 @@ function HealthTab() {
         )}
       </section>
 
-      <section aria-labelledby="sample-title" className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
+      <section aria-labelledby="sample-title" className="flex flex-col gap-3 rounded-2xl border bg-card p-4">
         <h2 id="sample-title" className="text-lg font-semibold">Sample data</h2>
         {sample.isPending ? (
           <Skeleton className="h-6 w-64" />

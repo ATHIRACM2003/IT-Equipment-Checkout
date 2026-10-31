@@ -321,6 +321,8 @@ const CLEAR = null as unknown as undefined;
 
 export interface Session {
   fullName: string;
+  /** Role from AppUsers. `role` is the effective (possibly "viewing as") role. */
+  realRole?: Role;
   me: PersonRef | null;
   appUser: AppUser | null;
   role: Role;
@@ -420,6 +422,13 @@ export async function fetchSettings(): Promise<Settings & { rows: { id: number; 
     if (["yes", "true", "1"].includes(v)) s.blockIfOverdue = true;
     else if (["no", "false", "0"].includes(v)) s.blockIfOverdue = false;
     else s.warnings.push(`Setting "BlockIfOverdue" has an invalid value — using the default (Yes).`);
+  }
+  const demo = rows.filter((r) => r.key.toLowerCase() === "demoroleswitch");
+  if (demo.length > 0) {
+    if (demo.length > 1) s.warnings.push(`Setting "DemoRoleSwitch" appears ${demo.length} times — using the first value.`);
+    const v = demo[0].value.toLowerCase();
+    if (["yes", "true", "1"].includes(v)) s.demoRoleSwitch = true;
+    else if (!["no", "false", "0", ""].includes(v)) s.warnings.push(`Setting "DemoRoleSwitch" has an invalid value — using the default (No).`);
   }
   return { ...s, rows };
 }

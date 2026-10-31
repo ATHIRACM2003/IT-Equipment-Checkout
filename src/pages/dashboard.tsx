@@ -17,7 +17,7 @@ const chartConfig = { count: { label: "Checked out", color: "var(--chart-2)" } }
 
 function Tile({ label, value, icon: Icon, emphasis }: { label: string; value: number; icon: typeof ClockIcon; emphasis?: boolean }) {
   return (
-    <div className={cn("flex min-w-0 flex-col gap-1 rounded-xl border p-4", emphasis && value > 0 ? "border-2 border-overdue bg-overdue text-overdue-foreground" : "border-border bg-card")}>
+    <div className={cn("flex min-w-0 flex-col gap-1 rounded-2xl border p-4", emphasis && value > 0 ? "border-2 border-overdue bg-overdue text-overdue-foreground shadow-md" : "bg-card")}>
       <span className="flex items-center gap-1.5 text-sm font-medium">
         <Icon className="size-4 shrink-0" aria-hidden="true" />
         <span className="truncate">{label}</span>
@@ -80,7 +80,7 @@ export function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
-        <section aria-labelledby="chart-title" className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 lg:col-span-2">
+        <section aria-labelledby="chart-title" className="flex min-w-0 flex-col gap-3 rounded-2xl border bg-card p-4 lg:col-span-2">
           <h2 id="chart-title" className="font-semibold">Checked out by type</h2>
           <p className="text-sm text-muted-foreground">{total === 0 ? "Nothing is checked out." : `${total} items out; most are ${top.type.toLowerCase()}s (${top.count}).`}</p>
           <div aria-hidden="true">
@@ -115,7 +115,7 @@ export function DashboardPage() {
           </table>
         </section>
 
-        <section aria-labelledby="overdue-title" className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 lg:col-span-3">
+        <section aria-labelledby="overdue-title" className="flex min-w-0 flex-col gap-3 rounded-2xl border bg-card p-4 lg:col-span-3">
           <h2 id="overdue-title" className="font-semibold">Overdue <span className="text-sm font-normal text-muted-foreground">({stats.overdue.length})</span></h2>
           {stats.overdue.length === 0 ? (
             <EmptyState icon={PartyPopperIcon} title="Nothing is overdue" className="py-8" />

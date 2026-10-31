@@ -69,6 +69,8 @@ export interface Settings {
   maxLoanDays: number;
   blockIfOverdue: boolean;
   pageSize: number;
+  /** Demo only: when true any active user may switch role. */
+  demoRoleSwitch: boolean;
   warnings: string[];
 }
 
@@ -77,6 +79,7 @@ export const DEFAULT_SETTINGS: Settings = {
   maxLoanDays: 30,
   blockIfOverdue: true,
   pageSize: 25,
+  demoRoleSwitch: false,
   warnings: [],
 };
 

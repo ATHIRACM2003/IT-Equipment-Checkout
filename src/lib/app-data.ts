@@ -3,11 +3,26 @@ import { useQuery } from "@tanstack/react-query";
 import { create } from "zustand";
 import { EquipmentService, AppUsersService } from "../../generated";
 import { fetchAppUsers, fetchLocations, fetchSettings, loadSession, type Session } from "./api";
-import { DEFAULT_SETTINGS } from "./domain";
+import { DEFAULT_SETTINGS, type Role } from "./domain";
 
 // ---------------------------------------------------------------- theme
 export type ThemeChoice = "system" | "light" | "dark";
-const THEME_KEY = "itec.theme";
+/** v2 key: only the light/dark choice is stored. Keys from earlier theme versions are removed. */
+const THEME_KEY = "itec.colorMode.v2";
+const LEGACY_KEYS = ["itec.theme"];
+
+function purgeLegacy() {
+  try {
+    for (const k of LEGACY_KEYS) window.localStorage.removeItem(k);
+    for (let i = window.localStorage.length - 1; i >= 0; i--) {
+      const k = window.localStorage.key(i);
+      if (k && k.startsWith("itec.") && k !== THEME_KEY) window.localStorage.removeItem(k);
+    }
+  } catch {
+    /* storage unavailable */
+  }
+}
+if (typeof window !== "undefined") purgeLegacy();
 
 function readStoredTheme(): ThemeChoice {
   try {
@@ -105,15 +120,51 @@ export function useAppUsers() {
   return useQuery({ queryKey: ["appUsers"], queryFn: fetchAppUsers, staleTime: 60_000 });
 }
 
+// ---------------------------------------------------------------- role switching ("View as")
+// Session-only: kept in sessionStorage, so it resets with a new browser session.
+const VIEW_AS_KEY = "itec.viewAs";
+function readViewAs(): Role | null {
+  try {
+    const v = window.sessionStorage.getItem(VIEW_AS_KEY);
+    return v === "Employee" || v === "IT Admin" ? v : null;
+  } catch {
+    return null;
+  }
+}
+interface ViewAsState {
+  viewAs: Role | null;
+  set: (r: Role | null) => void;
+}
+export const useViewAs = create<ViewAsState>((set) => ({
+  viewAs: typeof window !== "undefined" ? readViewAs() : null,
+  set: (viewAs) => {
+    try {
+      if (viewAs) window.sessionStorage.setItem(VIEW_AS_KEY, viewAs);
+      else window.sessionStorage.removeItem(VIEW_AS_KEY);
+    } catch {
+      /* ignore */
+    }
+    set({ viewAs });
+  },
+}));
+
 export function useSession() {
   const users = useAppUsers();
+  const settings = useSettings();
+  const viewAs = useViewAs((s) => s.viewAs);
   const q = useQuery<Session>({
     queryKey: ["session", users.dataUpdatedAt],
     queryFn: () => loadSession(users.data ?? []),
     enabled: users.isSuccess,
     staleTime: Infinity,
   });
-  return { ...q, usersQuery: users };
+  const real = q.data;
+  const realRole: Role = real?.role ?? "Employee";
+  const demo = settings.data?.demoRoleSwitch ?? false;
+  const canSwitch = !!real && !real.blocked && (realRole === "IT Admin" || demo);
+  const effective: Role = canSwitch && viewAs ? viewAs : realRole;
+  const data: Session | undefined = real ? { ...real, realRole, role: effective } : undefined;
+  return { ...q, data, usersQuery: users, canSwitch, demoRoleSwitch: demo, isViewingAs: !!real && effective !== realRole };
 }
 
 // ---------------------------------------------------------------- configured choices

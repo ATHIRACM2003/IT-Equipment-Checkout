@@ -29,19 +29,19 @@ import { useOnline } from "@/lib/app-data";
 const STATUS_STYLE: Record<DisplayStatus, { icon: typeof CheckCircle2Icon; cls: string }> = {
   Available: {
     icon: CheckCircle2Icon,
-    cls: "rounded-full border-2 border-[color:var(--link)] bg-transparent text-foreground",
+    cls: "rounded-full border-2 border-status-available bg-transparent text-foreground [&>svg]:text-status-available",
   },
   "Checked out": {
     icon: ClockIcon,
-    cls: "rounded-md border border-transparent bg-accent-fill text-accent-fill-foreground",
+    cls: "rounded-md border border-transparent bg-status-checked text-status-checked-foreground",
   },
   "In repair": {
     icon: WrenchIcon,
-    cls: "rounded-md border-2 border-dashed border-foreground/70 bg-transparent text-foreground",
+    cls: "rounded-md border-2 border-dashed border-status-repair bg-transparent text-foreground [&>svg]:text-status-repair",
   },
   Retired: {
     icon: ArchiveIcon,
-    cls: "rounded-sm border border-foreground/40 bg-muted text-foreground line-through decoration-1",
+    cls: "rounded-sm border border-status-retired bg-muted text-foreground line-through decoration-1 [&>svg]:text-status-retired",
   },
   Overdue: {
     icon: AlertTriangleIcon,
@@ -119,7 +119,7 @@ export function Field({
 }
 
 const controlCls =
-  "w-full min-w-0 min-h-11 rounded-md border border-input bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-destructive aria-[invalid=true]:border-2";
+  "w-full min-w-0 min-h-11 rounded-lg border border-input app-field px-3 py-2 text-base text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-destructive aria-[invalid=true]:border-2";
 
 function scrollIntoViewOnFocus(e: React.FocusEvent<HTMLElement>) {
   const el = e.currentTarget;
@@ -173,12 +173,12 @@ export function FormDialog({
         onInteractOutside={(e) => busy && e.preventDefault()}
         onEscapeKeyDown={(e) => busy && e.preventDefault()}
       >
-        <DialogHeader className="pt-safe shrink-0 border-b border-border px-5 py-4 text-left">
-          <DialogTitle className="pr-8 text-lg">{title}</DialogTitle>
+        <DialogHeader className="shrink-0 border-b border-border px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-4 text-left sm:px-6">
+          <DialogTitle className="pr-10 text-lg leading-snug">{title}</DialogTitle>
           {description ? <DialogDescription asChild><div className="text-sm text-muted-foreground">{description}</div></DialogDescription> : <DialogDescription className="sr-only">{title}</DialogDescription>}
         </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">{children}</div>
-        <div className="pb-safe sticky bottom-0 shrink-0 border-t border-border bg-popover px-5 py-3">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">{children}</div>
+        <div className="sticky bottom-0 shrink-0 border-t border-border bg-popover px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:min-h-11">{actions}</div>
         </div>
       </DialogContent>
@@ -278,7 +278,7 @@ export function PersonPicker({
   }, [term]);
   if (value) {
     return (
-      <div className="flex min-h-11 items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2">
+      <div className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-input app-field px-3 py-2">
         <span className="flex min-w-0 items-center gap-2">
           <UserIcon className="size-4 shrink-0" aria-hidden="true" />
           <span className="min-w-0">

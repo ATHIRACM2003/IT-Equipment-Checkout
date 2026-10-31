@@ -54,7 +54,7 @@ function FilterFields({ value, onChange, idPrefix }: { value: Filters; onChange:
 function EquipmentCard({ item, onCheckout, canCheckout }: { item: Equipment; onCheckout: () => void; canCheckout: boolean }) {
   const status = displayStatus(item);
   return (
-    <li className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xs">
+    <li className="lift flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-card">
       <DevicePlaceholder type={item.type} tag={item.tag} />
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -137,7 +137,7 @@ export function HomePage() {
   return (
     <div className="flex flex-col gap-4">
       <SectionTitle>Equipment catalog</SectionTitle>
-      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 sm:p-4" role="search" aria-label="Catalog filters">
+      <div className="flex flex-col gap-3 rounded-2xl border bg-card p-3 sm:p-4" role="search" aria-label="Catalog filters">
         <div className="flex items-end gap-2">
           <div className="min-w-0 flex-1">
             <label htmlFor="cat-search" className="sr-only">
@@ -175,7 +175,7 @@ export function HomePage() {
       </div>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="pb-safe max-h-[90dvh] overflow-y-auto rounded-t-2xl">
+        <SheetContent side="bottom" className="max-h-[90dvh] overflow-y-auto rounded-t-2xl pb-[max(1rem,env(safe-area-inset-bottom))]">
           <SheetHeader>
             <SheetTitle>Filters</SheetTitle>
             <SheetDescription>{[sheetDraft.type, sheetDraft.status, sheetDraft.location].filter(Boolean).length} active</SheetDescription>

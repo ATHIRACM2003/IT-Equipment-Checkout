@@ -78,7 +78,7 @@ export function MyItemsPage() {
             {rows.map((c) => {
               const od = isOverdue(c.dueDate, today);
               return (
-                <li key={c.id} className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4">
+                <li key={c.id} className="flex flex-col gap-2 rounded-2xl border bg-card p-4">
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-mono font-semibold">{c.equipment?.value || "Unknown item"}</span>
                     <StatusBadge status={od ? "Overdue" : "Checked out"} />
@@ -96,7 +96,7 @@ export function MyItemsPage() {
             })}
           </ul>
           {/* tablet / desktop: table */}
-          <div className="hidden overflow-x-auto rounded-xl border border-border bg-card sm:block">
+          <div className="hidden overflow-x-auto rounded-2xl border bg-card surface-dense sm:block">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">My active checkouts, overdue first</caption>
               <thead className="border-b border-border">
