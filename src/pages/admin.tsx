@@ -213,7 +213,7 @@ function InventoryTab() {
               </li>
             ))}
           </ul>
-          <div className="hidden overflow-x-auto rounded-2xl border bg-card surface-dense sm:block">
+          <div className="hidden overflow-x-auto overflow-y-hidden rounded-2xl border bg-card surface-dense sm:block">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">All equipment</caption>
               <thead className="border-b border-border">
@@ -287,7 +287,7 @@ function CheckoutsTab() {
         <>
           <ul className="flex flex-col gap-3 sm:hidden">
             {q.data.rows.map((c) => (
-              <li key={c.id} className="flex flex-col gap-1.5 rounded-2xl border bg-card p-4 text-sm">
+              <li key={c.id} className="flex flex-col gap-2 rounded-2xl border bg-card p-4 text-sm">
                 <div className="flex items-start justify-between gap-2">
                   <span className="font-mono font-semibold">{c.equipment?.value || "Unknown item"}</span>
                   {badge(c)}
@@ -298,7 +298,7 @@ function CheckoutsTab() {
               </li>
             ))}
           </ul>
-          <div className="hidden overflow-x-auto rounded-2xl border bg-card surface-dense sm:block">
+          <div className="hidden overflow-x-auto overflow-y-hidden rounded-2xl border bg-card surface-dense sm:block">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">Checkouts</caption>
               <thead className="border-b border-border">
@@ -735,8 +735,8 @@ export function AdminPage() {
     <div className="flex flex-col gap-4">
       <SectionTitle>Admin</SectionTitle>
       <Tabs value={tab} onValueChange={setTab} className="flex flex-col gap-4">
-        <div className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
-          <TabsList className="h-auto w-max">
+        <div className="-mx-2 overflow-x-auto overflow-y-hidden px-2 py-2">
+          <TabsList className="h-auto w-max p-1 group-data-[orientation=horizontal]/tabs:h-auto">
             {[
               ["inventory", "Inventory"],
               ["checkouts", "Checkouts"],

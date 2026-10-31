@@ -176,8 +176,14 @@ async function metadataByPath(path: string) {
   return r.data;
 }
 
+/** True/false only when SharePoint answered; throws on throttling, network or permission errors. */
 export async function imageExists(path: string): Promise<boolean> {
-  return !!(await metadataByPath(path));
+  const r = await SharePointService.GetFileMetadataByPath(SITE, path);
+  if (r.success && r.data) return true;
+  const err = r.error as { status?: number; message?: string } | undefined;
+  const msg = String(err?.message ?? "").toLowerCase();
+  if (err?.status === 404 || msg.includes("404") || msg.includes("not found") || msg.includes("does not exist")) return false;
+  throw new AppError("unknown", "Image check failed");
 }
 
 /**

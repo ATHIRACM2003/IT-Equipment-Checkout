@@ -844,11 +844,14 @@ export async function scanIntegrity(locations: Location[], appUsers: AppUser[]):
   // Missing image: no PhotoPath, or a PhotoPath whose file no longer exists.
   const paths = [...new Set(items.map((e) => e.photoPath).filter(Boolean))];
   const broken = new Set<string>();
-  await Promise.all(
-    paths.map(async (p) => {
-      if (!(await imageExists(p).catch(() => true))) broken.add(p);
-    }),
-  );
+  // Limited concurrency; an inconclusive check (throttling, network) is not reported as missing.
+  for (let i = 0; i < paths.length; i += 6) {
+    await Promise.all(
+      paths.slice(i, i + 6).map(async (p) => {
+        if (!(await imageExists(p).catch(() => true))) broken.add(p);
+      }),
+    );
+  }
   for (const e of items) {
     if (!e.photoPath || broken.has(e.photoPath)) {
       issues.push({ key: `img-${e.id}`, kind: "missing-image", title: `Missing image: ${e.tag}`, detail: e.photoPath ? "The image file was deleted or can't be read. Edit the item and choose an image." : "This item has no image. Edit the item and choose an image.", equipment: e, repairable: false });

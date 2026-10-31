@@ -210,7 +210,7 @@ export function EquipmentFormDialog({ open, item, onClose }: { open: boolean; it
       <form id="eq-form" noValidate onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {failure ? <ErrorPanel error={failure} className="sm:col-span-2" /> : null}
         <fieldset className="flex flex-col gap-3 sm:col-span-2" aria-describedby={imgError ? "eq-img-error" : undefined}>
-          <legend className="mb-1.5 text-sm font-medium">
+          <legend className="mb-2 text-sm font-medium">
             Image<span aria-hidden="true"> *</span><span className="sr-only"> (required)</span>
           </legend>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start">

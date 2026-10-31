@@ -99,7 +99,7 @@ export function MyItemsPage() {
             })}
           </ul>
           {/* tablet / desktop: table */}
-          <div className="hidden overflow-x-auto rounded-2xl border bg-card surface-dense sm:block">
+          <div className="hidden overflow-x-auto overflow-y-hidden rounded-2xl border bg-card surface-dense sm:block">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">My active checkouts, overdue first</caption>
               <thead className="border-b border-border">

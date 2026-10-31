@@ -134,8 +134,10 @@ export function ItemImage({
 }) {
   const { ref, seen } = useInView<HTMLDivElement>();
   const q = useImageUrl(src ? null : photoPath, seen);
-  const [failed, setFailed] = useState(false);
   const url = src ?? q.data ?? null;
+  // Failure is tied to the URL that failed, so switching to another image shows it again.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const failed = !!url && failedUrl === url;
   const loading = !src && !!photoPath && (!seen || q.isPending) && !q.isError;
   const showFallback = !url || failed || q.isError;
   const alt = `${artTypeFor(type) === "Other" ? type || "Equipment" : type}${tag ? ` ${tag}` : ""}`;
@@ -148,9 +150,9 @@ export function ItemImage({
       {loading ? (
         <div data-slot="skeleton" className="absolute inset-0 animate-pulse" />
       ) : showFallback ? (
-        <EquipmentArt type={type} decorative={decorative} className={thumb ? "p-0.5" : "p-[6%]"} />
+        <EquipmentArt type={type} decorative={decorative} className={thumb ? "p-1" : "p-[6%]"} />
       ) : (
-        <img src={url!} alt={decorative ? "" : alt} className="h-full w-full object-contain" decoding="async" onError={() => setFailed(true)} draggable={false} />
+        <img src={url!} alt={decorative ? "" : alt} className="h-full w-full object-contain" decoding="async" onError={() => setFailedUrl(url)} draggable={false} />
       )}
     </div>
   );

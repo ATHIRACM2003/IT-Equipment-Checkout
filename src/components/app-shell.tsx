@@ -34,6 +34,7 @@ import { ErrorPanel, OfflineBanner } from "@/components/kit";
 import { useIsDark, useSession, useSettings, useSystemThemeSync, useTheme, useViewAs, type ThemeChoice } from "@/lib/app-data";
 import { initials, type Role } from "@/lib/domain";
 import { useConfirm } from "@/hooks/use-confirm";
+import { BUILD_LABEL } from "@/lib/build-info";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -62,7 +63,7 @@ function ThemeToggle() {
       type="button"
       variant="ghost"
       onClick={() => set(NEXT_THEME[choice])}
-      className="min-h-11 min-w-11 gap-1.5 text-header-foreground hover:bg-header-hover hover:text-header-foreground"
+      className="min-h-11 min-w-11 gap-2 text-header-foreground hover:bg-header-hover hover:text-header-foreground"
       aria-label={`Theme: ${THEME_LABEL[choice]}. Switch to ${THEME_LABEL[NEXT_THEME[choice]]}`}
     >
       <Icon aria-hidden="true" />
@@ -112,7 +113,7 @@ function useSwitchRole() {
 
 function RoleChip({ role, viewing }: { role: Role; viewing?: boolean }) {
   return (
-    <span className="status-badge inline-flex items-center gap-1 rounded-full border border-header-foreground/60 px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-header-foreground">
+    <span className="status-badge inline-flex items-center gap-1 rounded-full border border-header-foreground/60 px-2 py-1 text-xs font-semibold whitespace-nowrap text-header-foreground">
       {viewing ? <EyeIcon className="size-3" aria-hidden="true" /> : role === "IT Admin" ? <ShieldCheckIcon className="size-3" aria-hidden="true" /> : <UserCircle2Icon className="size-3" aria-hidden="true" />}
       {role}
     </span>
@@ -131,7 +132,7 @@ function ProfileMenu() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="min-h-11 min-w-11 gap-2 px-1.5 text-header-foreground hover:bg-header-hover hover:text-header-foreground sm:px-2"
+          className="min-h-11 min-w-11 gap-2 px-2 text-header-foreground hover:bg-header-hover hover:text-header-foreground sm:px-2"
           aria-label={`Profile: ${name}, role ${role}${isViewingAs ? " (viewing as)" : ""}. Open profile menu`}
         >
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-header-active text-xs font-bold text-header-active-foreground" aria-hidden="true">
@@ -141,7 +142,7 @@ function ProfileMenu() {
           <span aria-hidden="true"><RoleChip role={role} viewing={isViewingAs} /></span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[min(18rem,calc(100vw-1rem))]">
+      <DropdownMenuContent align="end" className="w-72 max-w-[calc(100vw-var(--space-8))]">
         <DropdownMenuLabel className="flex flex-col gap-1 py-2">
           <span className="text-sm font-semibold break-words">{name}</span>
           <span className="text-xs font-normal break-all text-muted-foreground">{session?.me?.email ?? "Email unavailable"}</span>
@@ -164,7 +165,7 @@ function ProfileMenu() {
               ))}
             </DropdownMenuRadioGroup>
             {demoRoleSwitch && (
-              <p className="flex items-start gap-1.5 px-2 pb-1 text-xs font-medium text-warning">
+              <p className="flex items-start gap-2 px-2 pb-1 text-xs font-medium text-warning">
                 <FlaskConicalIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /> Demo role switching is on for everyone.
               </p>
             )}
@@ -179,6 +180,8 @@ function ProfileMenu() {
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <p className="px-2 py-1 text-xs text-muted-foreground">{BUILD_LABEL}</p>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -189,8 +192,8 @@ function ViewAsBanner() {
   const switchRole = useSwitchRole();
   if (!session || !isViewingAs) return null;
   return (
-    <div role="status" className="border-b-2 border-warning bg-card px-4 py-2 text-sm">
-      <div className="mx-auto flex max-w-[80rem] flex-wrap items-center justify-between gap-2">
+    <div role="status" className="border-b-2 border-warning bg-card py-2 text-sm">
+      <div className="page-container flex flex-wrap items-center justify-between gap-2">
         <p className="flex items-center gap-2">
           <EyeIcon className="size-4 shrink-0 text-warning" aria-hidden="true" />
           <span>
@@ -224,7 +227,7 @@ function Gate({ children }: { children: React.ReactNode }) {
   }
   if (isPending || !session) {
     return (
-      <div className="mx-auto flex w-full max-w-[80rem] flex-col gap-4 p-4 sm:p-6" aria-busy="true" aria-label="Loading">
+      <div className="page-container flex flex-col gap-4 py-4 sm:py-6" aria-busy="true" aria-label="Loading">
         <Skeleton className="h-9 w-48" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -248,8 +251,8 @@ function Gate({ children }: { children: React.ReactNode }) {
     <>
       <ViewAsBanner />
       {realAdmin && settings.data?.demoRoleSwitch && (
-        <div role="alert" className="border-b-2 border-warning bg-card px-4 py-2 text-sm">
-          <div className="mx-auto flex max-w-[80rem] items-start gap-2">
+        <div role="alert" className="border-b-2 border-warning bg-card py-2 text-sm">
+          <div className="page-container flex items-start gap-2">
             <FlaskConicalIcon className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
             <p>
               <strong>Demo role switching is ON.</strong> Any active user can switch to IT Admin in the app. Set DemoRoleSwitch to No in the AppSettings list when the demo is over.
@@ -258,8 +261,8 @@ function Gate({ children }: { children: React.ReactNode }) {
         </div>
       )}
       {session.noActiveAdmin && (
-        <div role="status" className="border-b-2 border-overdue bg-card px-4 py-3 text-sm">
-          <div className="mx-auto flex max-w-[80rem] items-start gap-2">
+        <div role="status" className="border-b-2 border-overdue bg-card py-3 text-sm">
+          <div className="page-container flex items-start gap-2">
             <ShieldAlertIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <p>
               <strong>Setup needed:</strong> no active IT Admin is listed. The SharePoint site owner should add a row to the AppUsers list with Role = IT Admin and Active = Yes.
@@ -268,15 +271,15 @@ function Gate({ children }: { children: React.ReactNode }) {
         </div>
       )}
       {realAdmin && settings.data && settings.data.warnings.length > 0 && (
-        <div role="status" className="border-b border-border bg-card px-4 py-2 text-sm">
-          <div className="mx-auto max-w-[80rem]">
+        <div role="status" className="border-b border-border bg-card py-2 text-sm">
+          <div className="page-container">
             <strong>Settings check:</strong> {settings.data.warnings.join(" ")}
           </div>
         </div>
       )}
       {session.identityAmbiguous && (
-        <div role="status" className="border-b border-border bg-card px-4 py-2 text-sm">
-          <div className="mx-auto max-w-[80rem]">More than one directory account matches your name. Ask an IT admin to add you to the user list so the app can identify you.</div>
+        <div role="status" className="border-b border-border bg-card py-2 text-sm">
+          <div className="page-container">More than one directory account matches your name. Ask an IT admin to add you to the user list so the app can identify you.</div>
         </div>
       )}
       {children}
@@ -298,11 +301,11 @@ export function AppShell() {
   const items = NAV.filter((n) => !n.admin || admin);
   return (
     <div className="flex min-h-[100dvh] flex-col">
-      <a href="#main-content" className="sr-only z-[60] rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2">
+      <a href="#main-content" className="sr-only z-[60] px-4 rounded-md bg-primary py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2">
         Skip to content
       </a>
       <header className="app-header pt-safe sticky top-0 z-40">
-        <div className="px-safe mx-auto flex w-full max-w-[80rem] items-center gap-2 px-3 py-2 sm:px-6">
+        <div className="page-container flex items-center gap-2 py-2">
           <NavLink to="/" className="flex min-h-11 min-w-0 items-center gap-2 rounded-md pr-2 font-semibold">
             <MonitorSmartphoneIcon className="size-6 shrink-0" aria-hidden="true" />
             <span className="truncate text-base sm:text-lg">IT Equipment Checkout</span>
@@ -339,14 +342,14 @@ export function AppShell() {
             initial={reduce ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="px-safe mx-auto w-full max-w-[80rem] flex-1 px-3 py-4 sm:px-6 sm:py-6"
+            className="page-container flex-1 py-4 sm:py-6"
           >
             <Outlet />
           </motion.div>
         </Gate>
       </main>
       <nav aria-label="Main" className="surface-float pb-safe fixed inset-x-0 bottom-0 z-40 rounded-none border-x-0 border-b-0 lg:hidden">
-        <ul className="mx-auto grid max-w-[40rem]" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+        <ul className="page-x mx-auto grid max-w-[40rem]" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
           {items.map((n) => (
             <li key={n.to}>
               <NavLink
@@ -354,7 +357,7 @@ export function AppShell() {
                 end={n.to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-xs font-medium text-muted-foreground",
+                    "flex min-h-14 flex-col items-center justify-center gap-1 px-1 text-xs font-medium text-muted-foreground",
                     isActive && "text-foreground [&>svg]:text-primary",
                   )
                 }

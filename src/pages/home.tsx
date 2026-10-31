@@ -60,7 +60,7 @@ function EquipmentCard({ item, onCheckout, canCheckout }: { item: Equipment; onC
         type={item.type}
         tag={item.tag}
         photoPath={item.photoPath}
-        className="m-3 mr-0 aspect-[4/3] w-24 shrink-0 self-start sm:m-0 sm:aspect-[16/9] sm:max-h-[180px] sm:w-full sm:rounded-none sm:border-x-0 sm:border-t-0"
+        className="my-3 ml-3 aspect-[4/3] w-24 shrink-0 self-start sm:m-0 sm:aspect-[16/9] sm:max-h-[180px] sm:w-full sm:rounded-none sm:border-x-0 sm:border-t-0"
       />
       <div className="flex min-w-0 flex-1 flex-col gap-2 p-3 sm:p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -71,17 +71,17 @@ function EquipmentCard({ item, onCheckout, canCheckout }: { item: Equipment; onC
           <span className="text-muted-foreground">{item.type} · </span>
           <span className="font-medium break-words">{item.model || "—"}</span>
         </p>
-        <p className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+        <p className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
           <MapPinIcon className="size-3.5 shrink-0" aria-hidden="true" />
           {item.location && !item.locationMissing ? <Truncate text={item.location.value} /> : <span className="font-medium text-foreground">Unknown location</span>}
         </p>
         {item.status === "Checked out" && (
           <div className="flex flex-col gap-1 rounded-md bg-muted p-2 text-sm">
-            <span className="flex min-w-0 items-center gap-1.5">
+            <span className="flex min-w-0 items-center gap-2">
               <UserIcon className="size-3.5 shrink-0" aria-hidden="true" />
               <Truncate text={item.holder?.name ?? "Unknown holder"} />
             </span>
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2">
               {status === "Overdue" ? <AlertTriangleIcon className="size-3.5" aria-hidden="true" /> : <CalendarIcon className="size-3.5" aria-hidden="true" />}
               <span className={status === "Overdue" ? "font-bold" : undefined}>Due {formatDate(item.dueDate)}</span>
             </span>
@@ -166,7 +166,7 @@ export function HomePage() {
               }}
             >
               <FilterIcon aria-hidden="true" /> Filters
-              {activeCount > 0 && <span className="ml-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">{activeCount}<span className="sr-only"> active</span></span>}
+              {activeCount > 0 && <span className="ml-1 rounded-full bg-primary px-2 text-xs text-primary-foreground">{activeCount}<span className="sr-only"> active</span></span>}
             </Button>
           )}
         </div>
@@ -181,20 +181,20 @@ export function HomePage() {
       </div>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="max-h-[90dvh] overflow-y-auto rounded-t-2xl pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <SheetHeader>
-            <SheetTitle>Filters</SheetTitle>
+        <SheetContent side="bottom" className="inset-x-0 w-full max-h-[85dvh] gap-0 overflow-x-hidden overflow-y-auto rounded-t-2xl p-0 pr-0">
+          <SheetHeader className="page-x gap-1 pt-4 pb-2">
+            <SheetTitle className="pr-12">Filters</SheetTitle>
             <SheetDescription>{[sheetDraft.type, sheetDraft.status, sheetDraft.location].filter(Boolean).length} active</SheetDescription>
           </SheetHeader>
-          <div className="flex flex-col gap-4 px-4">
+          <div className="page-x flex w-full flex-col gap-4 pt-2 pb-4">
             <FilterFields value={sheetDraft} onChange={setSheetDraft} idPrefix="sheet" />
           </div>
-          <SheetFooter className="sticky bottom-0 flex-row gap-2 bg-background">
-            <Button variant="outline" className="min-h-11 flex-1" onClick={() => setSheetDraft(EMPTY)}>
+          <SheetFooter className="page-x sticky bottom-0 mt-0 grid w-full grid-cols-2 gap-3 border-t border-border bg-popover pt-3 pb-[max(var(--space-4),env(safe-area-inset-bottom))]">
+            <Button variant="outline" className="min-h-11 w-full" onClick={() => setSheetDraft(EMPTY)}>
               Clear
             </Button>
             <Button
-              className="min-h-11 flex-1"
+              className="min-h-11 w-full"
               onClick={() => {
                 setFilters(sheetDraft);
                 setSheetOpen(false);

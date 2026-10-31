@@ -36,11 +36,6 @@
   &:where([data-orientation="vertical"]) { @slot; }
 }
 
-@utility no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
-}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -374,12 +369,11 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 :root { color-scheme: light; }
 .dark { color-scheme: dark; }
 @media (prefers-color-scheme: dark) { :root:not(.light) { color-scheme: dark; } }
-body { overflow-x: hidden; background-color: var(--background); }
+body { background-color: var(--background); }
 body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--page-gradient); pointer-events: none; }
 h1, h2, h3 { color: var(--heading); }
 .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 .pt-safe { padding-top: env(safe-area-inset-top); }
-.px-safe { padding-left: max(env(safe-area-inset-left), 0px); padding-right: max(env(safe-area-inset-right), 0px); }
 input, select, textarea { font-size: max(16px, 1rem) !important; }
 :focus-visible { outline: 3px solid var(--ring) !important; outline-offset: 2px; }
 
@@ -450,3 +444,42 @@ body, .bg-card, .surface-float, .app-header, nav, [data-slot="button"], [data-sl
 }
 .app-header :focus-visible { outline-color: var(--header-fg) !important; }
 .art-frame { background-color: var(--art-surface); border: 1px solid var(--art-edge); }
+
+/* ---- spacing scale (only these values are used for padding, margins and gaps) ---- */
+:root {
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
+  --page-x: var(--space-4);
+}
+@media (min-width: 640px) { :root { --page-x: var(--space-6); } }
+@media (min-width: 1024px) { :root { --page-x: var(--space-8); } }
+/* One horizontal page padding for header, pages, banners, dialogs, sheets and the tab bar. */
+.page-x {
+  padding-left: max(var(--page-x), env(safe-area-inset-left));
+  padding-right: max(var(--page-x), env(safe-area-inset-right));
+}
+/* One shared page container: header content, banners and every page use it. */
+.page-container {
+  box-sizing: border-box; width: 100%; max-width: 1600px; margin-inline: auto;
+  padding-left: max(var(--page-x), env(safe-area-inset-left));
+  padding-right: max(var(--page-x), env(safe-area-inset-right));
+}
+
+/* Root cause fix: the dialog/sheet scroll lock adds a scrollbar-width right margin to <body>,
+   which made the sticky header and page end short of the right edge while anything was open. */
+body[data-scroll-locked] { margin-right: 0 !important; }
+/* Horizontal safety net only (clip is not a scroll container; vertical page scroll is untouched). */
+body { overflow-x: clip; }
+
+/* Close buttons: 44px tap target, icon aligned with the content's right padding. */
+[data-slot="sheet-close"], [data-slot="dialog-close"]:not([data-slot="button"]) {
+  display: inline-flex !important; align-items: center; justify-content: center;
+  width: 44px !important; height: 44px !important; opacity: 1 !important; border-radius: var(--radius-md);
+  top: calc(var(--space-2) + var(--dialog-scroll-top, 0px)) !important;
+  right: calc(max(var(--page-x), env(safe-area-inset-right)) - 14px) !important;
+}
+
+/* ---- Hidden scrollbars everywhere (scrolling still works by wheel, trackpad, touch and keys).
+   This is the only scrollbar styling in the app and must stay last. ---- */
+html, body, * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+*::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }

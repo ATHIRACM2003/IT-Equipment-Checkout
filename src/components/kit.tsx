@@ -48,7 +48,7 @@ export function StatusBadge({ status, className }: { status: DisplayStatus; clas
   const s = STATUS_STYLE[status];
   const Icon = s.icon;
   return (
-    <span className={cn("status-badge inline-flex min-h-6 items-center gap-1 px-2 py-0.5 text-xs font-medium whitespace-nowrap", s.cls, className)}>
+    <span className={cn("status-badge inline-flex min-h-6 items-center gap-1 px-2 py-1 text-xs font-medium whitespace-nowrap", s.cls, className)}>
       <Icon className="size-3.5 shrink-0" aria-hidden="true" />
       <span>{status}</span>
     </span>
@@ -73,7 +73,7 @@ export function Field({
   required?: boolean;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5">
+    <div className="flex w-full min-w-0 flex-col gap-2">
       <label htmlFor={htmlFor} className="text-sm font-medium">
         {label}
         {required && <span aria-hidden="true"> *</span>}
@@ -111,7 +111,7 @@ export function TextArea({ invalid, describedBy, className, ...p }: TextareaHTML
 }
 export function SelectInput({ invalid, className, children, ...p }: SelectHTMLAttributes<HTMLSelectElement> & { invalid?: boolean }) {
   return (
-    <div className="relative min-w-0">
+    <div className="relative w-full min-w-0">
       <select {...p} aria-invalid={invalid || undefined} className={cn(controlCls, "appearance-none pr-9", className)}>
         {children}
       </select>
@@ -144,18 +144,18 @@ export function FormDialog({
       <DialogContent
         className={cn(
           "flex flex-col gap-0 overflow-hidden p-0",
-          "max-sm:top-0 max-sm:left-0 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:border-0",
+          "max-sm:inset-0 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:border-0",
           "sm:max-h-[min(90dvh,52rem)] sm:max-w-xl",
         )}
         onInteractOutside={(e) => busy && e.preventDefault()}
         onEscapeKeyDown={(e) => busy && e.preventDefault()}
       >
-        <DialogHeader className="shrink-0 border-b border-border px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-4 text-left sm:px-6">
-          <DialogTitle className="pr-10 text-lg leading-snug">{title}</DialogTitle>
+        <DialogHeader className="page-x shrink-0 gap-2 border-b border-border pt-[max(var(--space-4),env(safe-area-inset-top))] pb-4 text-left">
+          <DialogTitle className="pr-12 text-lg leading-snug">{title}</DialogTitle>
           {description ? <DialogDescription asChild><div className="text-sm text-muted-foreground">{description}</div></DialogDescription> : <DialogDescription className="sr-only">{title}</DialogDescription>}
         </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">{children}</div>
-        <div className="sticky bottom-0 shrink-0 border-t border-border bg-popover px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
+        <div className="page-x min-h-0 flex-1 overflow-y-auto overscroll-contain py-4">{children}</div>
+        <div className="page-x sticky bottom-0 shrink-0 border-t border-border bg-popover pt-3 pb-[max(var(--space-3),env(safe-area-inset-bottom))] sm:pb-4">
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:min-h-11">{actions}</div>
         </div>
       </DialogContent>
@@ -185,7 +185,7 @@ export function OfflineBanner() {
   const online = useOnline();
   if (online) return null;
   return (
-    <div role="status" className="flex items-center justify-center gap-2 bg-overdue px-4 py-2 text-sm font-medium text-overdue-foreground">
+    <div role="status" className="page-x flex items-center justify-center gap-2 bg-overdue py-2 text-sm font-medium text-overdue-foreground">
       <WifiOffIcon className="size-4" aria-hidden="true" /> You're offline. Saving is paused until the connection returns.
     </div>
   );
@@ -281,7 +281,7 @@ export function PersonPicker({
         {state === "idle" && term.trim().length >= 2 && results.length === 0 && <li className="text-sm text-muted-foreground">No people found.</li>}
         {results.map((p) => (
           <li key={p.email}>
-            <button type="button" onClick={() => onChange(p)} className="flex min-h-11 w-full flex-col items-start rounded-md border border-border px-3 py-1.5 text-left hover:bg-accent focus-visible:bg-accent">
+            <button type="button" onClick={() => onChange(p)} className="flex min-h-11 w-full flex-col items-start rounded-md border border-border px-3 py-2 text-left hover:bg-accent focus-visible:bg-accent">
               <span className="text-sm font-medium">{p.name}</span>
               <span className="text-xs text-muted-foreground">{p.email}</span>
             </button>

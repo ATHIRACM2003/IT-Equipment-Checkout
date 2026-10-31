@@ -18,7 +18,7 @@ const chartConfig = { count: { label: "Checked out", color: "var(--chart-2)" } }
 function Tile({ label, value, icon: Icon, emphasis }: { label: string; value: number; icon: typeof ClockIcon; emphasis?: boolean }) {
   return (
     <div className={cn("flex min-w-0 flex-col gap-1 rounded-2xl border p-4", emphasis && value > 0 ? "border-2 border-overdue bg-overdue text-overdue-foreground shadow-md" : "bg-card")}>
-      <span className="flex items-center gap-1.5 text-sm font-medium">
+      <span className="flex items-center gap-2 text-sm font-medium">
         <Icon className="size-4 shrink-0" aria-hidden="true" />
         <span className="truncate">{label}</span>
       </span>
@@ -70,7 +70,7 @@ export function DashboardPage() {
   const top = [...stats.chart].sort((a, b) => b.count - a.count)[0];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <SectionTitle count={q.data.truncated ? "Counts cover the first 2,500 items" : undefined}>Dashboard</SectionTitle>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Tile label="Available" value={stats.available} icon={CheckCircle2Icon} />
@@ -79,7 +79,7 @@ export function DashboardPage() {
         <Tile label="Overdue" value={stats.overdue.length} icon={AlertTriangleIcon} emphasis />
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <section aria-labelledby="chart-title" className="flex min-w-0 flex-col gap-3 rounded-2xl border bg-card p-4 lg:col-span-2">
           <h2 id="chart-title" className="font-semibold">Checked out by type</h2>
           <p className="text-sm text-muted-foreground">{total === 0 ? "Nothing is checked out." : `${total} items out; most are ${top.type.toLowerCase()}s (${top.count}).`}</p>
@@ -123,7 +123,7 @@ export function DashboardPage() {
             <>
               <ul className="flex flex-col gap-2 sm:hidden">
                 {stats.overdue.map((c) => (
-                  <li key={c.id} className="flex flex-col gap-1.5 rounded-lg border border-border p-3">
+                  <li key={c.id} className="flex flex-col gap-2 rounded-lg border border-border p-3">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-mono font-semibold">{c.equipment?.value || "Unknown item"}</span>
                       <StatusBadge status="Overdue" />
@@ -134,7 +134,7 @@ export function DashboardPage() {
                   </li>
                 ))}
               </ul>
-              <div className="hidden overflow-x-auto sm:block">
+              <div className="hidden overflow-x-auto overflow-y-hidden sm:block">
                 <table className="w-full text-left text-sm">
                   <caption className="sr-only">Overdue checkouts, oldest first</caption>
                   <thead className="border-b border-border">
