@@ -10,6 +10,7 @@ export * as CheckoutsModel from './models/CheckoutsModel';
 export * as CommonModels from './models/CommonModels';
 export * as EquipmentModel from './models/EquipmentModel';
 export * as LocationsModel from './models/LocationsModel';
+export * as SharePointModel from './models/SharePointModel';
 
 // Services
 export * from './services/AppSettingsService';
@@ -17,3 +18,4 @@ export * from './services/AppUsersService';
 export * from './services/CheckoutsService';
 export * from './services/EquipmentService';
 export * from './services/LocationsService';
+export * from './services/SharePointService';

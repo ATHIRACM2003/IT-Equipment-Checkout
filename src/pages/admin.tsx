@@ -25,6 +25,7 @@ import { EmptyState } from "@/components/states";
 import { useConfirm } from "@/hooks/use-confirm";
 import { ErrorPanel, Field, FormDialog, Pager, PersonPicker, SavingLabel, SectionTitle, SelectInput, StatusBadge, TextInput, Truncate, usePagedTokens } from "@/components/kit";
 import { EquipmentFormDialog, HistoryDialog } from "@/components/equipment-form";
+import { ItemImage } from "@/components/equipment-art";
 import { ReturnDialog } from "@/components/return-dialog";
 import {
   countSampleData,
@@ -200,7 +201,7 @@ function InventoryTab() {
             {q.data.rows.map((e) => (
               <li key={e.id} className="flex flex-col gap-2 rounded-2xl border bg-card p-4">
                 <div className="flex items-start justify-between gap-2">
-                  <span className="font-mono font-semibold">{e.tag}</span>
+                  <span className="flex items-center gap-2"><ItemImage thumb decorative type={e.type} photoPath={e.photoPath} /><span className="font-mono font-semibold">{e.tag}</span></span>
                   <StatusBadge status={displayStatus(e)} />
                 </div>
                 <Truncate text={`${e.type} · ${e.model}`} className="text-sm font-medium" />
@@ -230,7 +231,7 @@ function InventoryTab() {
               <tbody className="divide-y divide-border">
                 {q.data.rows.map((e) => (
                   <tr key={e.id} className={q.isFetching ? "opacity-70" : undefined}>
-                    <td className="px-3 py-2 font-mono font-semibold whitespace-nowrap">{e.tag}</td>
+                    <td className="px-3 py-2 font-mono font-semibold whitespace-nowrap"><span className="flex items-center gap-2"><ItemImage thumb decorative type={e.type} photoPath={e.photoPath} />{e.tag}</span></td>
                     <td className="hidden px-3 py-2 lg:table-cell">{e.type}</td>
                     <td className="max-w-[14rem] px-3 py-2"><Truncate text={e.model} /></td>
                     <td className="hidden max-w-[10rem] px-3 py-2 font-mono text-xs xl:table-cell"><Truncate text={e.serial} /></td>

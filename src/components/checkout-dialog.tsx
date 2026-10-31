@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ItemImage } from "@/components/equipment-art";
 import { Field, FormDialog, SavingLabel, StatusBadge, TextArea, TextInput, ErrorPanel } from "@/components/kit";
 import { AppError, checkoutItem, fetchActiveCheckouts } from "@/lib/api";
 import { useOnline, useSession, useSettingsValue } from "@/lib/app-data";
@@ -164,7 +165,9 @@ export function CheckoutDialog({ item, onClose }: { item: Equipment | null; onCl
     >
       {item && (
         <form id="checkout-form" onSubmit={submit} noValidate className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1 rounded-lg border border-border bg-card p-3">
+          <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
+            <ItemImage type={item.type} tag={item.tag} photoPath={item.photoPath} className="aspect-[4/3] w-20 shrink-0 sm:w-28" />
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-mono text-sm font-semibold">{item.tag}</span>
               <StatusBadge status={displayStatus(item)} />
@@ -173,6 +176,7 @@ export function CheckoutDialog({ item, onClose }: { item: Equipment | null; onCl
             <p className="text-sm text-muted-foreground">
               {item.type} · Serial {item.serial || "—"} · {item.location?.value || "Unknown location"}
             </p>
+            </div>
           </div>
           <p className="text-sm" aria-live="polite">
             <strong>

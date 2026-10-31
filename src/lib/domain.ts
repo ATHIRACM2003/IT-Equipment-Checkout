@@ -37,6 +37,8 @@ export interface Equipment {
   dueDate: string | null;
   notes: string;
   modified: string;
+  /** Site-relative path of the item's image in the EquipmentImages library ("" when none). */
+  photoPath: string;
 }
 
 export interface Checkout {

@@ -2,6 +2,7 @@
 // through the generated connector clients; no credentials live in the app.
 import type { IOperationResult } from "@microsoft/managed-apps/data";
 import { getUser } from "@microsoft/managed-apps/auth";
+import { imageExists } from "./images";
 import {
   AppSettingsService,
   AppUsersService,
@@ -256,6 +257,7 @@ export function mapEquipment(r: EquipmentRead): Equipment {
     dueDate: toDateOnly(r.CurrentDueDate),
     notes: r.Notes ?? "",
     modified: r.Modified ?? "",
+    photoPath: (r.PhotoPath ?? "").trim(),
   };
 }
 
@@ -489,6 +491,23 @@ async function findEquipmentBy(field: "Title" | "SerialNumber", value: string): 
   return page.rows.filter((e) => (field === "Title" ? e.tag : e.serial).toLowerCase() === value.toLowerCase());
 }
 
+/** How many other Equipment rows use this image path (shared images must never be deleted). */
+export async function photoReferenceCount(path: string, exceptId?: number): Promise<number> {
+  const rows: Equipment[] = [];
+  let token: string | undefined;
+  do {
+    const page = await query(
+      (o) => EquipmentService.getAll(o),
+      mapEquipment,
+      [textEqClause("PhotoPath", path, (e) => e.photoPath)],
+      { top: 500, skipToken: token },
+    );
+    rows.push(...page.rows);
+    token = page.next;
+  } while (token);
+  return rows.filter((e) => e.id !== exceptId && e.photoPath.toLowerCase() === path.toLowerCase()).length;
+}
+
 export async function checkUnique(tag: string, serial: string, exceptId?: number): Promise<{ tag?: string; serial?: string }> {
   const [a, b] = await Promise.all([findEquipmentBy("Title", tag), findEquipmentBy("SerialNumber", serial)]);
   const out: { tag?: string; serial?: string } = {};
@@ -506,6 +525,7 @@ export interface EquipmentInput {
   location: LookupRef;
   notes: string;
   status?: string;
+  photoPath?: string;
 }
 
 export async function createEquipment(input: EquipmentInput): Promise<Equipment> {
@@ -518,6 +538,7 @@ export async function createEquipment(input: EquipmentInput): Promise<Equipment>
     Condition: { Value: input.condition },
     Location: refWrite(input.location),
     Notes: input.notes,
+    PhotoPath: input.photoPath ?? "",
   };
   const { data } = await call(() => EquipmentService.create(rec));
   return mapEquipment(data);
@@ -533,6 +554,7 @@ export async function updateEquipment(id: number, changes: Partial<EquipmentInpu
   if (changes.location !== undefined) rec.Location = refWrite(changes.location);
   if (changes.notes !== undefined) rec.Notes = changes.notes;
   if (changes.status !== undefined) rec.Status = { Value: changes.status };
+  if (changes.photoPath !== undefined) rec.PhotoPath = changes.photoPath;
   const { data } = await call(() => EquipmentService.update(String(id), rec));
   return mapEquipment(data);
 }
@@ -774,7 +796,8 @@ export type IssueKind =
   | "unknown-location"
   | "inactive-location"
   | "unknown-item"
-  | "inactive-borrower";
+  | "inactive-borrower"
+  | "missing-image";
 
 export interface Issue {
   key: string;
@@ -816,6 +839,19 @@ export async function scanIntegrity(locations: Location[], appUsers: AppUser[]):
       const loc = locations.find((l) => l.id === e.location!.id);
       if (!loc || e.locationMissing) issues.push({ key: `ul-${e.id}`, kind: "unknown-location", title: `${e.tag} has an unknown location`, detail: "Edit the item and choose an active location.", equipment: e, repairable: false });
       else if (!loc.active) issues.push({ key: `il-${e.id}`, kind: "inactive-location", title: `${e.tag} is at inactive location "${loc.name}"`, detail: "Edit the item and choose an active location.", equipment: e, repairable: false });
+    }
+  }
+  // Missing image: no PhotoPath, or a PhotoPath whose file no longer exists.
+  const paths = [...new Set(items.map((e) => e.photoPath).filter(Boolean))];
+  const broken = new Set<string>();
+  await Promise.all(
+    paths.map(async (p) => {
+      if (!(await imageExists(p).catch(() => true))) broken.add(p);
+    }),
+  );
+  for (const e of items) {
+    if (!e.photoPath || broken.has(e.photoPath)) {
+      issues.push({ key: `img-${e.id}`, kind: "missing-image", title: `Missing image: ${e.tag}`, detail: e.photoPath ? "The image file was deleted or can't be read. Edit the item and choose an image." : "This item has no image. Edit the item and choose an image.", equipment: e, repairable: false });
     }
   }
   return { issues, truncated };

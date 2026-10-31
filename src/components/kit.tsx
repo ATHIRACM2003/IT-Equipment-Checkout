@@ -9,11 +9,6 @@ import {
   RefreshCwIcon,
   WifiOffIcon,
   WrenchIcon,
-  LaptopIcon,
-  MonitorIcon,
-  SmartphoneIcon,
-  CableIcon,
-  PackageIcon,
   SearchIcon,
   UserIcon,
 } from "lucide-react";
@@ -60,24 +55,6 @@ export function StatusBadge({ status, className }: { status: DisplayStatus; clas
   );
 }
 
-export const TYPE_ICON: Record<string, typeof LaptopIcon> = {
-  Laptop: LaptopIcon,
-  Monitor: MonitorIcon,
-  Phone: SmartphoneIcon,
-  Dock: CableIcon,
-  Other: PackageIcon,
-};
-
-/** Photo placeholder: a drawn device silhouette per type. */
-export function DevicePlaceholder({ type, tag }: { type: string; tag: string }) {
-  const Icon = TYPE_ICON[type] ?? PackageIcon;
-  return (
-    <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden rounded-t-[inherit] bg-gradient-to-br from-secondary to-muted" aria-hidden="true">
-      <Icon className="size-14 text-foreground/70" strokeWidth={1.25} />
-      <span className="absolute right-2 bottom-2 rounded bg-background/80 px-1.5 py-0.5 font-mono text-[11px] text-foreground">{tag}</span>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------- form controls
 export function Field({

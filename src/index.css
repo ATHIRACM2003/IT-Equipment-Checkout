@@ -100,6 +100,13 @@
   --shadow-lift: 0 2px 4px rgba(13, 27, 61, 0.08), 0 12px 28px -8px rgba(13, 27, 61, 0.18);
   --outline-border: #0D1B3D;
   --radius: 0.75rem;
+  --art-line: #0D1B3D;
+  --art-body: #FFFFFF;
+  --art-screen: #E5E7EB;
+  --art-detail: #6B7280;
+  --art-shadow: rgba(13, 27, 61, 0.10);
+  --art-surface: #F3F4F6;
+  --art-edge: #E5E7EB;
   --chart-1: #0D1B3D;
   --chart-2: #0D1B3D;
   --chart-3: #4B5563;
@@ -233,6 +240,13 @@ body {
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 24px -8px rgba(0, 0, 0, 0.50);
   --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 32px -10px rgba(0, 0, 0, 0.60);
   --outline-border: rgba(255, 255, 255, 0.70);
+  --art-line: #FFFFFF;
+  --art-body: rgba(255, 255, 255, 0.06);
+  --art-screen: rgba(255, 255, 255, 0.16);
+  --art-detail: rgba(255, 255, 255, 0.55);
+  --art-shadow: rgba(0, 0, 0, 0.35);
+  --art-surface: rgba(255, 255, 255, 0.05);
+  --art-edge: rgba(255, 255, 255, 0.12);
   --chart-1: #FFFFFF;
   --chart-2: #FFFFFF;
   --chart-3: rgba(255, 255, 255, 0.62);
@@ -320,6 +334,13 @@ body {
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 24px -8px rgba(0, 0, 0, 0.50);
     --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 32px -10px rgba(0, 0, 0, 0.60);
     --outline-border: rgba(255, 255, 255, 0.70);
+    --art-line: #FFFFFF;
+    --art-body: rgba(255, 255, 255, 0.06);
+    --art-screen: rgba(255, 255, 255, 0.16);
+    --art-detail: rgba(255, 255, 255, 0.55);
+    --art-shadow: rgba(0, 0, 0, 0.35);
+    --art-surface: rgba(255, 255, 255, 0.05);
+    --art-edge: rgba(255, 255, 255, 0.12);
     --chart-1: #FFFFFF;
     --chart-2: #FFFFFF;
     --chart-3: rgba(255, 255, 255, 0.62);
@@ -428,3 +449,4 @@ body, .bg-card, .surface-float, .app-header, nav, [data-slot="button"], [data-sl
   :focus-visible { outline-color: Highlight !important; }
 }
 .app-header :focus-visible { outline-color: var(--header-fg) !important; }
+.art-frame { background-color: var(--art-surface); border: 1px solid var(--art-edge); }

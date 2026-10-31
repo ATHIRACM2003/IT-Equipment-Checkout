@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getEquipment } from "@/lib/api";
+import { ItemImage } from "@/components/equipment-art";
 import type { Equipment } from "@/lib/domain";
 import { Link } from "react-router-dom";
 import { PackageOpenIcon } from "lucide-react";
@@ -30,6 +31,8 @@ export function MyItemsPage() {
       return m;
     },
   });
+  const photoOf = (c: Checkout) => (c.equipment ? details.data?.get(c.equipment.id)?.photoPath : undefined);
+  const typeOf = (c: Checkout) => (c.equipment ? details.data?.get(c.equipment.id)?.type : undefined);
   const itemName = (c: Checkout) => {
     if (!c.equipment || c.equipmentMissing) return "Unknown item";
     const e = details.data?.get(c.equipment.id);
@@ -80,7 +83,7 @@ export function MyItemsPage() {
               return (
                 <li key={c.id} className="flex flex-col gap-2 rounded-2xl border bg-card p-4">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="font-mono font-semibold">{c.equipment?.value || "Unknown item"}</span>
+                    <span className="flex items-center gap-2"><ItemImage thumb decorative type={typeOf(c)} photoPath={photoOf(c)} /><span className="font-mono font-semibold">{c.equipment?.value || "Unknown item"}</span></span>
                     <StatusBadge status={od ? "Overdue" : "Checked out"} />
                   </div>
                   <Truncate text={itemName(c)} className="text-sm font-medium" />
@@ -114,7 +117,7 @@ export function MyItemsPage() {
                   const od = isOverdue(c.dueDate, today);
                   return (
                     <tr key={c.id}>
-                      <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap">{c.equipment?.value || "Unknown item"}</td>
+                      <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap"><span className="flex items-center gap-2"><ItemImage thumb decorative type={typeOf(c)} photoPath={photoOf(c)} />{c.equipment?.value || "Unknown item"}</span></td>
                       <td className="max-w-[18rem] px-4 py-3"><Truncate text={itemName(c)} className="font-medium" /><Truncate text={c.purpose || "—"} className="text-xs text-muted-foreground" /></td>
                       <td className="hidden px-4 py-3 whitespace-nowrap md:table-cell">{formatDate(c.checkoutDate)}</td>
                       <td className="px-4 py-3 whitespace-nowrap">{formatDate(c.dueDate)}</td>

@@ -31,7 +31,8 @@
         "checkouts",
         "locations",
         "appusers",
-        "appsettings"
+        "appsettings",
+        "sharepointonline"
       ],
       "displayName": "SharePoint",
       "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"

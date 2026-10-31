@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { EmptyState } from "@/components/states";
-import { DevicePlaceholder, ErrorPanel, Field, Pager, SectionTitle, SelectInput, StatusBadge, TextInput, Truncate, usePagedTokens } from "@/components/kit";
+import { ErrorPanel, Field, Pager, SectionTitle, SelectInput, StatusBadge, TextInput, Truncate, usePagedTokens } from "@/components/kit";
 import { CheckoutDialog, readDraft } from "@/components/checkout-dialog";
+import { ItemImage } from "@/components/equipment-art";
 import { fetchEquipmentPage, getEquipment, type EquipmentFilter } from "@/lib/api";
 import { useChoices, useLocations, useOnline, usePhone, useSettingsValue } from "@/lib/app-data";
 import { displayStatus, formatDate, type Equipment } from "@/lib/domain";
@@ -54,9 +55,14 @@ function FilterFields({ value, onChange, idPrefix }: { value: Filters; onChange:
 function EquipmentCard({ item, onCheckout, canCheckout }: { item: Equipment; onCheckout: () => void; canCheckout: boolean }) {
   const status = displayStatus(item);
   return (
-    <li className="lift flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-card">
-      <DevicePlaceholder type={item.type} tag={item.tag} />
-      <div className="flex flex-1 flex-col gap-2 p-4">
+    <li className="lift flex min-w-0 flex-row overflow-hidden rounded-2xl border bg-card sm:flex-col">
+      <ItemImage
+        type={item.type}
+        tag={item.tag}
+        photoPath={item.photoPath}
+        className="m-3 mr-0 aspect-[4/3] w-24 shrink-0 self-start sm:m-0 sm:aspect-[16/9] sm:max-h-[180px] sm:w-full sm:rounded-none sm:border-x-0 sm:border-t-0"
+      />
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-3 sm:p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <h2 className="font-mono text-base font-semibold">{item.tag}</h2>
           <StatusBadge status={status} />

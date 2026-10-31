@@ -71,6 +71,7 @@ export interface EquipmentBase {
   Notes?: string;
   OData__ColorTag?: string;
   ComplianceAssetId?: string;
+  PhotoPath?: string;
   Modified?: string;
   Created?: string;
   'Author#Claims'?: string;
