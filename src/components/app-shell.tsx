@@ -15,7 +15,6 @@ import {
   LockIcon,
   EyeIcon,
   UndoIcon,
-  FlaskConicalIcon,
   type LucideIcon,
 } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
@@ -121,7 +120,7 @@ function RoleChip({ role, viewing }: { role: Role; viewing?: boolean }) {
 }
 
 function ProfileMenu() {
-  const { data: session, canSwitch, demoRoleSwitch, isViewingAs } = useSession();
+  const { data: session, canSwitch, isViewingAs } = useSession();
   const choice = useTheme((s) => s.choice);
   const set = useTheme((s) => s.set);
   const switchRole = useSwitchRole();
@@ -164,11 +163,6 @@ function ProfileMenu() {
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
-            {demoRoleSwitch && (
-              <p className="flex items-start gap-2 px-2 pb-1 text-xs font-medium text-warning">
-                <FlaskConicalIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /> Demo role switching is on for everyone.
-              </p>
-            )}
           </>
         )}
         <DropdownMenuSeparator />
@@ -250,16 +244,6 @@ function Gate({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ViewAsBanner />
-      {realAdmin && settings.data?.demoRoleSwitch && (
-        <div role="alert" className="border-b-2 border-warning bg-card py-2 text-sm">
-          <div className="page-container flex items-start gap-2">
-            <FlaskConicalIcon className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
-            <p>
-              <strong>Demo role switching is ON.</strong> Any active user can switch to IT Admin in the app. Set DemoRoleSwitch to No in the AppSettings list when the demo is over.
-            </p>
-          </div>
-        </div>
-      )}
       {session.noActiveAdmin && (
         <div role="status" className="border-b-2 border-overdue bg-card py-3 text-sm">
           <div className="page-container flex items-start gap-2">
