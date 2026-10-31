@@ -1,15 +1,17 @@
-// Equipment images stored in the SharePoint document library "EquipmentImages".
-// Each Equipment row keeps the file's site-relative path in its PhotoPath column.
+// Equipment images. Each Equipment row keeps a reference in its PhotoPath column:
+//  - "/EquipmentImages/..."  a file in the EquipmentImages library (the shared standard images)
+//  - "photos:<ID>"           a photo uploaded from the app, stored as a compressed image (data URL
+//                            text) in the EquipmentPhotos list. The app's SharePoint connection
+//                            can only send text, so binary file uploads to the library are not used.
 // Files are read and written only through the signed-in user's SharePoint connection;
 // they are shown as in-memory data: URLs (never a public link).
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { SharePointService } from "../../generated";
+import { EquipmentPhotosService, SharePointService } from "../../generated";
 import { AppError } from "./api";
 
 export const SITE = "https://sysforetech.sharepoint.com/sites/EquipmentCheckout";
 export const LIBRARY = "/EquipmentImages";
-export const ITEMS_FOLDER = `${LIBRARY}/items`;
 
 /** The shared standard images, one per type. "Other" has none yet. */
 export const STANDARD_IMAGES: Record<string, string> = {
@@ -23,7 +25,14 @@ export const standardImageFor = (type: string | null | undefined): string | null
 export const isStandardImage = (path: string | null | undefined): boolean =>
   !!path && Object.values(STANDARD_IMAGES).some((p) => p.toLowerCase() === path.toLowerCase());
 
+export const PHOTO_PREFIX = "photos:";
 export const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
+/** Stored photo size cap (characters of the data URL) so it fits a SharePoint text field. */
+const MAX_DATA_CHARS = 60_000;
+const photoId = (path: string): string | null => {
+  const m = /^photos:(\d+)$/i.exec(path.trim());
+  return m ? m[1] : null;
+};
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const MAX_SIDE = 1280;
 
@@ -69,7 +78,20 @@ export function bytesToDataUrl(bytes: Uint8Array, mime: ImageMime): string {
 }
 
 // ---------------------------------------------------------------- read
+const DATA_URL = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\s]+)$/;
+
 export async function fetchImageDataUrl(path: string): Promise<string> {
+  const id = photoId(path);
+  if (id) {
+    const p = await EquipmentPhotosService.get(id, { select: ["ID", "ImageData"] });
+    if (!p.success || !p.data) {
+      console.error("photo load failed", p.error);
+      throw new AppError("missing", "Image unavailable");
+    }
+    const m = DATA_URL.exec((p.data.ImageData ?? "").trim());
+    if (!m || sniffMime(base64ToBytes(m[2].slice(0, 64))) === null) throw new AppError("validation", "Not a supported image");
+    return `data:${m[1]};base64,${m[2].replace(/\s/g, "")}`;
+  }
   const r = await SharePointService.GetFileContentByPath(SITE, path, true);
   if (!r.success) {
     console.error("image load failed", r.error);
@@ -118,14 +140,16 @@ export interface PreparedImage {
 }
 const EXT: Record<ImageMime, PreparedImage["ext"]> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 
-/** Validates by real file type, resizes to <=1280px longest side, and enforces the 2 MB limit. */
+/**
+ * Validates by real file type (not extension), then resizes and compresses in the browser
+ * (longest side 1280px or less) until the stored photo fits the text field.
+ */
 export async function prepareImage(file: File): Promise<PreparedImage> {
   if (file.size > MAX_SOURCE_BYTES) throw new AppError("validation", "That file is too large. Choose an image under 20 MB.");
   const original = new Uint8Array(await file.arrayBuffer());
   const mime = sniffMime(original);
   if (!mime) throw new AppError("validation", "Only JPG, PNG or WebP images are allowed.");
 
-  let out: { bytes: Uint8Array; mime: ImageMime } = { bytes: original, mime };
   let dims: { width: number; height: number };
   try {
     const probe = await createImageBitmap(new Blob([original], { type: mime }));
@@ -134,32 +158,40 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
   } catch {
     throw new AppError("validation", "This image couldn't be read. Try a different JPG, PNG or WebP file.");
   }
-  const scale = Math.min(1, MAX_SIDE / Math.max(dims.width, dims.height));
-  if (scale < 1 || original.length > MAX_UPLOAD_BYTES) {
-    // Resize with the browser's image decoder (no drawing canvas); re-encode via a bitmap renderer.
-    try {
-      const w = Math.max(1, Math.round(dims.width * scale));
-      const h = Math.max(1, Math.round(dims.height * scale));
-      const resized = await createImageBitmap(new Blob([original], { type: mime }), { resizeWidth: w, resizeHeight: h, resizeQuality: "high" });
-      if (typeof OffscreenCanvas !== "undefined") {
+
+  const fits = (bytes: Uint8Array, m: ImageMime) => bytes.length <= MAX_UPLOAD_BYTES && bytesToDataUrl(bytes, m).length <= MAX_DATA_CHARS;
+  if (fits(original, mime) && Math.max(dims.width, dims.height) <= MAX_SIDE) {
+    return { bytes: original, mime, ext: EXT[mime], dataUrl: bytesToDataUrl(original, mime) };
+  }
+  if (typeof OffscreenCanvas === "undefined") {
+    throw new AppError("validation", "This browser can't compress photos. Choose a smaller image (about 40 KB or less).");
+  }
+  // Resize with the browser's decoder (no drawing canvas) and re-encode through a bitmap renderer.
+  for (const side of [MAX_SIDE, 960, 800, 640, 512, 400, 320]) {
+    const scale = Math.min(1, side / Math.max(dims.width, dims.height));
+    const w = Math.max(1, Math.round(dims.width * scale));
+    const h = Math.max(1, Math.round(dims.height * scale));
+    for (const quality of [0.82, 0.7, 0.58]) {
+      try {
+        const bmp = await createImageBitmap(new Blob([original], { type: mime }), { resizeWidth: w, resizeHeight: h, resizeQuality: "high" });
         const surface = new OffscreenCanvas(w, h);
         const renderer = surface.getContext("bitmaprenderer");
-        if (renderer) {
-          renderer.transferFromImageBitmap(resized);
-          const targetType: ImageMime = mime === "image/png" ? "image/png" : "image/jpeg";
-          let blob = await surface.convertToBlob({ type: targetType, quality: 0.85 });
-          if (blob.size > MAX_UPLOAD_BYTES && targetType === "image/png") blob = await surface.convertToBlob({ type: "image/jpeg", quality: 0.85 });
-          const bytes = new Uint8Array(await blob.arrayBuffer());
-          const m = sniffMime(bytes);
-          if (m) out = { bytes, mime: m };
+        if (!renderer) {
+          bmp.close();
+          break;
         }
-      } else resized.close();
-    } catch {
-      /* resizing unsupported in this browser: the original is used if it fits the limit */
+        renderer.transferFromImageBitmap(bmp);
+        let blob = await surface.convertToBlob({ type: "image/webp", quality });
+        if (blob.type !== "image/webp") blob = await surface.convertToBlob({ type: "image/jpeg", quality });
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        const m = sniffMime(bytes);
+        if (m && fits(bytes, m)) return { bytes, mime: m, ext: EXT[m], dataUrl: bytesToDataUrl(bytes, m) };
+      } catch {
+        /* try the next size */
+      }
     }
   }
-  if (out.bytes.length > MAX_UPLOAD_BYTES) throw new AppError("validation", "The image is larger than 2 MB even after resizing. Choose a smaller image.");
-  return { ...out, ext: EXT[out.mime], dataUrl: bytesToDataUrl(out.bytes, out.mime) };
+  throw new AppError("validation", "This photo couldn't be compressed enough to save. Try a smaller or simpler image.");
 }
 
 // ---------------------------------------------------------------- write
@@ -178,6 +210,15 @@ async function metadataByPath(path: string) {
 
 /** True/false only when SharePoint answered; throws on throttling, network or permission errors. */
 export async function imageExists(path: string): Promise<boolean> {
+  const id = photoId(path);
+  if (id) {
+    const p = await EquipmentPhotosService.get(id, { select: ["ID"] });
+    if (p.success && p.data) return true;
+    const e = p.error as { status?: number; message?: string } | undefined;
+    const m = String(e?.message ?? "").toLowerCase();
+    if (e?.status === 404 || m.includes("404") || m.includes("not found") || m.includes("does not exist")) return false;
+    throw new AppError("unknown", "Image check failed");
+  }
   const r = await SharePointService.GetFileMetadataByPath(SITE, path);
   if (r.success && r.data) return true;
   const err = r.error as { status?: number; message?: string } | undefined;
@@ -186,31 +227,32 @@ export async function imageExists(path: string): Promise<boolean> {
   throw new AppError("unknown", "Image check failed");
 }
 
-/**
- * Uploads an image into EquipmentImages/items and verifies the stored size matches the
- * bytes sent. Anything else is removed again and reported as a failed upload.
- */
+/** Saves an uploaded photo in the EquipmentPhotos list and returns its PhotoPath reference. */
 export async function uploadImage(img: PreparedImage, tag: string): Promise<string> {
   const name = safeFileName(tag, img.ext);
-  let binary = "";
-  for (let i = 0; i < img.bytes.length; i += 0x8000) binary += String.fromCharCode(...img.bytes.subarray(i, i + 0x8000));
-  const r = await SharePointService.CreateFile(SITE, ITEMS_FOLDER, name, binary);
-  if (!r.success) {
-    console.error("image upload failed", r.error);
-    throw new AppError("unknown", "The image couldn't be uploaded, so nothing was saved. Try again, or use the standard image.");
+  const r = await EquipmentPhotosService.create({ Title: name, ImageData: img.dataUrl, AssetTag: tag });
+  if (!r.success || !r.data?.ID) {
+    console.error("photo upload failed", r.error);
+    throw new AppError("unknown", "The photo couldn't be uploaded, so nothing was saved. Check your connection and try again.");
   }
-  const path = `${ITEMS_FOLDER}/${name}`;
-  const meta = await metadataByPath(path);
-  if (!meta || meta.Size !== img.bytes.length) {
-    if (meta?.Id) await SharePointService.DeleteFile(SITE, meta.Id).catch(() => undefined);
-    throw new AppError("unknown", "The image didn't upload correctly, so nothing was saved. Use the standard image for now.");
+  const ref = `${PHOTO_PREFIX}${r.data.ID}`;
+  // Verify the stored text round-trips intact before the equipment row points at it.
+  const check = await EquipmentPhotosService.get(String(r.data.ID), { select: ["ID", "ImageData"] });
+  if (!check.success || (check.data?.ImageData ?? "").trim() !== img.dataUrl) {
+    await EquipmentPhotosService.delete(String(r.data.ID)).catch(() => undefined);
+    throw new AppError("unknown", "The photo didn't save correctly, so nothing was saved. Try a smaller image.");
   }
-  return path;
+  return ref;
 }
 
 /** Deletes an uploaded image. Standard images are never deleted. */
 export async function deleteImage(path: string): Promise<void> {
   if (isStandardImage(path)) return;
+  const id = photoId(path);
+  if (id) {
+    await EquipmentPhotosService.delete(id);
+    return;
+  }
   const meta = await metadataByPath(path);
   if (!meta?.Id) return;
   const r = await SharePointService.DeleteFile(SITE, meta.Id);

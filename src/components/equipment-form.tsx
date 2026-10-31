@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ItemImage } from "@/components/equipment-art";
@@ -35,6 +36,7 @@ export function EquipmentFormDialog({ open, item, onClose }: { open: boolean; it
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<unknown>(null);
   const confirm = useConfirm();
+  const navigate = useNavigate();
   type ImgMode = "keep" | "standard" | "upload";
   const [imgMode, setImgMode] = useState<ImgMode>("standard");
   const [upload, setUpload] = useState<PreparedImage | null>(null);
@@ -169,9 +171,14 @@ export function EquipmentFormDialog({ open, item, onClose }: { open: boolean; it
         if (uploaded) await deleteImage(uploaded).catch(() => undefined);
         throw saveErr;
       }
-      toast.success(item ? `${v.tag} updated.` : `${v.tag} added.`);
+      toast.success(item ? `${v.tag} updated successfully.` : `${v.tag} added successfully.`);
       const old = item?.photoPath;
       close();
+      if (!item) {
+        // New item: refresh the catalog and show it there.
+        await qc.invalidateQueries({ queryKey: ["equipment"] });
+        navigate("/");
+      }
       // Replaced image: delete only an uploaded (non-standard) file no other item uses, after confirmation.
       if (item && old && photoPath && photoPath.toLowerCase() !== old.toLowerCase() && !isStandardImage(old)) {
         const refs = await photoReferenceCount(old, item.id).catch(() => 1);
@@ -249,7 +256,7 @@ export function EquipmentFormDialog({ open, item, onClose }: { open: boolean; it
                     {preparing ? <Loader2Icon className="animate-spin" aria-hidden="true" /> : <ImageUpIcon aria-hidden="true" />}
                     {upload ? "Choose a different photo" : "Choose photo"}
                   </Button>
-                  <span className="text-muted-foreground"><span className="hidden lg:inline">Or drag a photo here. </span>JPG, PNG or WebP, up to 2 MB. Large photos are resized.</span>
+                  <span className="text-muted-foreground"><span className="hidden lg:inline">Or drag a photo here. </span>JPG, PNG or WebP. Photos are resized and compressed automatically.</span>
                 </div>
               )}
             </div>

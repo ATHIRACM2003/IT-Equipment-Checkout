@@ -20,6 +20,9 @@
             "equipment": {
               "tableName": "Equipment"
             },
+            "equipmentphotos": {
+              "tableName": "EquipmentPhotos"
+            },
             "locations": {
               "tableName": "Locations"
             }
@@ -32,7 +35,8 @@
         "locations",
         "appusers",
         "appsettings",
-        "sharepointonline"
+        "sharepointonline",
+        "equipmentphotos"
       ],
       "displayName": "SharePoint",
       "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"

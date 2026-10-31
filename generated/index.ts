@@ -9,6 +9,7 @@ export * as AppUsersModel from './models/AppUsersModel';
 export * as CheckoutsModel from './models/CheckoutsModel';
 export * as CommonModels from './models/CommonModels';
 export * as EquipmentModel from './models/EquipmentModel';
+export * as EquipmentPhotosModel from './models/EquipmentPhotosModel';
 export * as LocationsModel from './models/LocationsModel';
 export * as SharePointModel from './models/SharePointModel';
 
@@ -16,6 +17,7 @@ export * as SharePointModel from './models/SharePointModel';
 export * from './services/AppSettingsService';
 export * from './services/AppUsersService';
 export * from './services/CheckoutsService';
+export * from './services/EquipmentPhotosService';
 export * from './services/EquipmentService';
 export * from './services/LocationsService';
 export * from './services/SharePointService';
