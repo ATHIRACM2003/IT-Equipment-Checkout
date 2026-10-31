@@ -491,23 +491,6 @@ async function findEquipmentBy(field: "Title" | "SerialNumber", value: string): 
   return page.rows.filter((e) => (field === "Title" ? e.tag : e.serial).toLowerCase() === value.toLowerCase());
 }
 
-/** How many other Equipment rows use this image path (shared images must never be deleted). */
-export async function photoReferenceCount(path: string, exceptId?: number): Promise<number> {
-  const rows: Equipment[] = [];
-  let token: string | undefined;
-  do {
-    const page = await query(
-      (o) => EquipmentService.getAll(o),
-      mapEquipment,
-      [textEqClause("PhotoPath", path, (e) => e.photoPath)],
-      { top: 500, skipToken: token },
-    );
-    rows.push(...page.rows);
-    token = page.next;
-  } while (token);
-  return rows.filter((e) => e.id !== exceptId && e.photoPath.toLowerCase() === path.toLowerCase()).length;
-}
-
 export async function checkUnique(tag: string, serial: string, exceptId?: number): Promise<{ tag?: string; serial?: string }> {
   const [a, b] = await Promise.all([findEquipmentBy("Title", tag), findEquipmentBy("SerialNumber", serial)]);
   const out: { tag?: string; serial?: string } = {};
@@ -854,7 +837,7 @@ export async function scanIntegrity(locations: Location[], appUsers: AppUser[]):
   }
   for (const e of items) {
     if (!e.photoPath || broken.has(e.photoPath)) {
-      issues.push({ key: `img-${e.id}`, kind: "missing-image", title: `Missing image: ${e.tag}`, detail: e.photoPath ? "The image file was deleted or can't be read. Edit the item and choose an image." : "This item has no image. Edit the item and choose an image.", equipment: e, repairable: false });
+      issues.push({ key: `img-${e.id}`, kind: "missing-image", title: `Missing image: ${e.tag}`, detail: e.photoPath ? "The standard image file was deleted or can't be read. Restore it in the EquipmentImages library." : `There's no standard image for ${e.type} yet. Edit the item to apply the standard image if one exists for its type.`, equipment: e, repairable: false });
     }
   }
   return { issues, truncated };

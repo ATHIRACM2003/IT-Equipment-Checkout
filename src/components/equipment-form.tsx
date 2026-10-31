@@ -1,14 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ItemImage } from "@/components/equipment-art";
-import { useConfirm } from "@/hooks/use-confirm";
-import { deleteImage, isStandardImage, prepareImage, standardImageFor, uploadImage, type PreparedImage } from "@/lib/images";
-import { ImageUpIcon, Loader2Icon } from "lucide-react";
+import { standardImageFor } from "@/lib/images";
 import { ErrorPanel, Field, FormDialog, SavingLabel, SelectInput, StatusBadge, TextArea, TextInput } from "@/components/kit";
-import { checkUnique, createEquipment, equipmentHasHistory, fetchCheckoutsPage, photoReferenceCount, updateEquipment } from "@/lib/api";
+import { checkUnique, createEquipment, equipmentHasHistory, fetchCheckoutsPage, updateEquipment } from "@/lib/api";
 import { useChoices, useLocations, useOnline } from "@/lib/app-data";
 import { LIMITS, TAG_PATTERN, TYPE_PREFIX, cleanText, formatDate, isOverdue, todayISO, type Equipment } from "@/lib/domain";
 import { Pager, usePagedTokens, Truncate } from "@/components/kit";
@@ -35,15 +33,7 @@ export function EquipmentFormDialog({ open, item, onClose }: { open: boolean; it
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<unknown>(null);
-  const confirm = useConfirm();
   const navigate = useNavigate();
-  type ImgMode = "keep" | "standard" | "upload";
-  const [imgMode, setImgMode] = useState<ImgMode>("standard");
-  const [upload, setUpload] = useState<PreparedImage | null>(null);
-  const [imgError, setImgError] = useState<string | undefined>();
-  const [preparing, setPreparing] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
   const history = useQuery({
     queryKey: ["equipment", "hasHistory", item?.id],
     enabled: open && !!item,
@@ -65,27 +55,8 @@ export function EquipmentFormDialog({ open, item, onClose }: { open: boolean; it
     else setF({ tag: "", type: "", model: "", serial: "", condition: "Good", location: "", notes: "" });
     setErrors({});
     setFailure(null);
-    setUpload(null);
-    setImgError(undefined);
-    setImgMode(item?.photoPath ? "keep" : item && !standardImageFor(item.type) ? "upload" : "standard");
   }, [open, item]);
 
-  async function pickFile(file: File | undefined | null) {
-    if (!file) return;
-    setPreparing(true);
-    setImgError(undefined);
-    try {
-      const img = await prepareImage(file);
-      setUpload(img);
-      setImgMode("upload");
-    } catch (e) {
-      setUpload(null);
-      setImgError((e as Error).message);
-    } finally {
-      setPreparing(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  }
   const standardPath = standardImageFor(f.type);
 
   useEffect(() => {
@@ -136,17 +107,8 @@ export function EquipmentFormDialog({ open, item, onClose }: { open: boolean; it
     else if (!loc) e.location = "Choose an active location.";
     if (v.notes.length > LIMITS.notes) e.notes = `Keep notes under ${LIMITS.notes} characters.`;
     if (item && tagLocked && v.tag !== item.tag) e.tag = "The tag can't change because this item has checkout history.";
-    let imgErr: string | undefined;
-    if (imgMode === "standard" && !standardImageFor(v.type)) imgErr = v.type ? `There's no standard image for ${v.type} yet. Upload a photo instead.` : "Choose a type to use its standard image.";
-    if (imgMode === "upload" && !upload) imgErr = "Choose a photo to upload, or use the standard image.";
-    if (imgMode === "keep" && !item?.photoPath) imgErr = "Choose an image for this item.";
-    setImgError(imgErr);
     setErrors(e);
     setFailure(null);
-    if (imgErr && !Object.keys(e).length) {
-      document.getElementById("eq-img-standard")?.focus();
-      return;
-    }
     if (Object.keys(e).length) {
       document.getElementById(`eq-${Object.keys(e)[0]}`)?.focus();
       return;
@@ -159,32 +121,17 @@ export function EquipmentFormDialog({ open, item, onClose }: { open: boolean; it
         document.getElementById(dup.tag ? "eq-tag" : "eq-serial")?.focus();
         return;
       }
-      // Upload first: if it fails, nothing is created or changed.
-      let uploaded: string | null = null;
-      if (imgMode === "upload" && upload) uploaded = await uploadImage(upload, v.tag);
-      const photoPath = imgMode === "upload" ? uploaded! : imgMode === "standard" ? standardImageFor(v.type)! : undefined;
+      // Standard images only: the image follows the Type. Types without a standard image show the type icon.
+      const photoPath = standardImageFor(v.type) ?? "";
       const input = { tag: v.tag, type: v.type, model: v.model, serial: v.serial, condition: v.condition, location: { id: loc!.id, value: loc!.name }, notes: v.notes, photoPath };
-      try {
-        if (item) await updateEquipment(item.id, input);
-        else await createEquipment(input);
-      } catch (saveErr) {
-        if (uploaded) await deleteImage(uploaded).catch(() => undefined);
-        throw saveErr;
-      }
+      if (item) await updateEquipment(item.id, input);
+      else await createEquipment(input);
       toast.success(item ? `${v.tag} updated successfully.` : `${v.tag} added successfully.`);
-      const old = item?.photoPath;
       close();
       if (!item) {
         // New item: refresh the catalog and show it there.
         await qc.invalidateQueries({ queryKey: ["equipment"] });
         navigate("/");
-      }
-      // Replaced image: delete only an uploaded (non-standard) file no other item uses, after confirmation.
-      if (item && old && photoPath && photoPath.toLowerCase() !== old.toLowerCase() && !isStandardImage(old)) {
-        const refs = await photoReferenceCount(old, item.id).catch(() => 1);
-        if (refs === 0 && (await confirm({ title: "Delete the old image?", description: `The previous image of ${v.tag} isn't used by any other item. Delete the file from the EquipmentImages library?`, confirmLabel: "Delete old image", destructive: true }))) {
-          await deleteImage(old).then(() => toast.success("Old image deleted.")).catch((err) => toast.error((err as Error).message));
-        }
       }
     } catch (err) {
       setFailure(err);
@@ -216,57 +163,16 @@ export function EquipmentFormDialog({ open, item, onClose }: { open: boolean; it
     >
       <form id="eq-form" noValidate onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {failure ? <ErrorPanel error={failure} className="sm:col-span-2" /> : null}
-        <fieldset className="flex flex-col gap-3 sm:col-span-2" aria-describedby={imgError ? "eq-img-error" : undefined}>
-          <legend className="mb-2 text-sm font-medium">
-            Image<span aria-hidden="true"> *</span><span className="sr-only"> (required)</span>
-          </legend>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-            <ItemImage
-              type={f.type}
-              tag={f.tag}
-              photoPath={imgMode === "keep" ? item?.photoPath : imgMode === "standard" ? standardPath : null}
-              src={imgMode === "upload" ? upload?.dataUrl ?? null : null}
-              className="aspect-[16/9] w-full max-h-[140px] shrink-0 sm:w-56 sm:max-h-[180px]"
-            />
-            <div className="flex min-w-0 flex-1 flex-col gap-2" role="radiogroup" aria-label="Image source">
-              {item?.photoPath && (
-                <label className="flex min-h-11 items-center gap-3 text-sm">
-                  <input type="radio" name="eq-img" className="size-5 accent-primary" checked={imgMode === "keep"} onChange={() => { setImgMode("keep"); setImgError(undefined); }} />
-                  Keep the current image
-                </label>
-              )}
-              <label className="flex min-h-11 items-center gap-3 text-sm">
-                <input id="eq-img-standard" type="radio" name="eq-img" className="size-5 accent-primary" checked={imgMode === "standard"} onChange={() => { setImgMode("standard"); setImgError(undefined); }} />
-                {f.type ? `Use the standard ${f.type} image` : "Use the standard image for the type"}
-                {f.type && !standardPath && <span className="text-xs text-muted-foreground">(none yet)</span>}
-              </label>
-              <label className="flex min-h-11 items-center gap-3 text-sm">
-                <input type="radio" name="eq-img" className="size-5 accent-primary" checked={imgMode === "upload"} onChange={() => { setImgMode("upload"); setImgError(undefined); }} />
-                Upload a photo
-              </label>
-              {imgMode === "upload" && (
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                  onDragLeave={() => setDragOver(false)}
-                  onDrop={(e) => { e.preventDefault(); setDragOver(false); void pickFile(e.dataTransfer.files?.[0]); }}
-                  className={`flex flex-col items-start gap-2 rounded-lg border-2 border-dashed p-3 text-sm ${dragOver ? "border-primary bg-accent" : "border-input"}`}
-                >
-                  <input ref={fileRef} id="eq-img-file" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => void pickFile(e.target.files?.[0])} />
-                  <Button type="button" variant="outline" className="min-h-11" disabled={preparing} onClick={() => fileRef.current?.click()}>
-                    {preparing ? <Loader2Icon className="animate-spin" aria-hidden="true" /> : <ImageUpIcon aria-hidden="true" />}
-                    {upload ? "Choose a different photo" : "Choose photo"}
-                  </Button>
-                  <span className="text-muted-foreground"><span className="hidden lg:inline">Or drag a photo here. </span>JPG, PNG or WebP. Photos are resized and compressed automatically.</span>
-                </div>
-              )}
-            </div>
-          </div>
-          {imgError && (
-            <p id="eq-img-error" role="alert" className="text-sm font-medium text-destructive">
-              {imgError}
-            </p>
-          )}
-        </fieldset>
+        <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center">
+          <ItemImage type={f.type} tag={f.tag} photoPath={standardPath} className="aspect-[16/9] w-full max-h-[140px] shrink-0 sm:w-56 sm:max-h-[180px]" />
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            {!f.type
+              ? "The image is set automatically from the Type."
+              : standardPath
+                ? `Uses the standard ${f.type} image.`
+                : `There's no standard ${f.type} image yet, so the ${f.type} icon is shown.`}
+          </p>
+        </div>
         <Field label="Type" htmlFor="eq-type" error={errors.type ?? (types.isError ? "Types couldn't be loaded." : undefined)} required>
           <SelectInput
             id="eq-type"
