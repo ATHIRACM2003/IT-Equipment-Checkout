@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts";
-import { AlertTriangleIcon, CheckCircle2Icon, ClockIcon, PartyPopperIcon, WrenchIcon } from "lucide-react";
+import { AlertTriangleIcon,CalendarClockIcon, CheckCircle2Icon, ClockIcon, PartyPopperIcon, WrenchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { EmptyState } from "@/components/states";
 import { ErrorPanel, SectionTitle, StatusBadge, Truncate } from "@/components/kit";
@@ -14,6 +15,8 @@ import { daysBetween, formatDate, isOverdue, todayISO, type Checkout } from "@/l
 import { cn } from "@/lib/utils";
 
 const chartConfig = { count: { label: "Checked out", color: "var(--chart-2)" } } satisfies ChartConfig;
+const DUE_SOON_DAYS = 3;
+
 
 function Tile({ label, value, icon: Icon, emphasis }: { label: string; value: number; icon: typeof ClockIcon; emphasis?: boolean }) {
   return (
@@ -46,14 +49,19 @@ export function DashboardPage() {
     const byType = new Map<string, number>();
     rows.filter((e) => e.status === "Checked out").forEach((e) => byType.set(e.type, (byType.get(e.type) ?? 0) + 1));
     const overdue = q.data.active.filter((c) => isOverdue(c.dueDate, today)).sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""));
+        const dueSoon = q.data.active.filter(
+      (c) => c.dueDate && !isOverdue(c.dueDate, today) && daysBetween(today, c.dueDate) <= DUE_SOON_DAYS,
+    ).length;
     return {
       available: rows.filter((e) => e.status === "Available").length,
       out: rows.filter((e) => e.status === "Checked out").length,
       repair: rows.filter((e) => e.status === "In repair").length,
+      dueSoon,
       overdue,
       chart: ["Laptop", "Monitor", "Phone", "Dock", "Other"].map((t) => ({ type: t, count: byType.get(t) ?? 0 })).concat([...byType.entries()].filter(([t]) => !["Laptop", "Monitor", "Phone", "Dock", "Other"].includes(t)).map(([type, count]) => ({ type, count }))),
     };
   }, [q.data, today]);
+  
 
   if (q.isPending) {
     return (
@@ -76,6 +84,8 @@ export function DashboardPage() {
         <Tile label="Available" value={stats.available} icon={CheckCircle2Icon} />
         <Tile label="Checked out" value={stats.out} icon={ClockIcon} />
         <Tile label="In repair" value={stats.repair} icon={WrenchIcon} />
+                <Tile label={`Due in ${DUE_SOON_DAYS} days`} value={stats.dueSoon} icon={CalendarClockIcon} />
+
         <Tile label="Overdue" value={stats.overdue.length} icon={AlertTriangleIcon} emphasis />
       </div>
 
