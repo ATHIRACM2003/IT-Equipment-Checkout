@@ -292,7 +292,7 @@ export function AppShell() {
         <div className="page-container flex items-center gap-2 py-2">
           <NavLink to="/" className="flex min-h-11 min-w-0 items-center gap-2 rounded-md pr-2 font-semibold">
             <MonitorSmartphoneIcon className="size-6 shrink-0" aria-hidden="true" />
-            <span className="truncate text-base sm:text-lg">IT Equipment Checkout</span>
+            <span className="truncate text-base sm:text-lg">IT Equipment Test</span>
           </NavLink>
           <nav aria-label="Main" className="ml-4 hidden items-center gap-1 lg:flex">
             {items.map((n) => (

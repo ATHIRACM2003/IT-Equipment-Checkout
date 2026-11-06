@@ -1,0 +1,12 @@
+{
+  "cliVersion": "0.32.2",
+  "manifestVersion": "0.0",
+  "clientDirectory": "client",
+  "hasCustomMiddleTier": false,
+  "routes": {
+    "/": {
+      "type": "client",
+      "path": "index.html"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "appDisplayName": "IT Equipment Checkout",
+  "appId": "3028586e-0d56-4b01-b03e-bacb0c2c01cf",
+  "buildEntryPoint": "index.html",
+  "buildPath": "dist",
+  "connectionReferences": {
+    "e7ad8c40-d041-47f9-a67f-007c6f58ecca": {
+      "dataSets": {
+        "https://sysforetech.sharepoint.com/sites/EquipmentCheckout": {
+          "dataSources": {
+            "appsettings": {
+              "tableName": "AppSettings"
+            },
+            "appusers": {
+              "tableName": "AppUsers"
+            },
+            "checkouts": {
+              "tableName": "Checkouts"
+            },
+            "equipment": {
+              "tableName": "Equipment"
+            },
+            "locations": {
+              "tableName": "Locations"
+            }
+          }
+        }
+      },
+      "dataSources": [
+        "equipment",
+        "checkouts",
+        "locations",
+        "appusers",
+        "appsettings",
+        "sharepointonline"
+      ],
+      "displayName": "SharePoint",
+      "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+    }
+  },
+  "environmentId": "1dc27516-dbbd-e511-b338-d724e01c8bdb",
+  "repositoryId": "8d985411-8502-4c65-983f-92401df9b6c5",
+  "version": "0.0",
+  "buildCommand": "npm run build"
+}
