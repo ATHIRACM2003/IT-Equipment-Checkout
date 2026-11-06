@@ -43,7 +43,7 @@ interface NavItem {
   admin?: boolean;
 }
 const NAV: NavItem[] = [
-  { to: "/", label: "Catalog", icon: BoxesIcon },
+  { to: "/", label: "Inventory", icon: BoxesIcon },
   { to: "/my-items", label: "My items", icon: PackageCheckIcon },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
   { to: "/admin", label: "Admin", icon: ShieldCheckIcon, admin: true },
